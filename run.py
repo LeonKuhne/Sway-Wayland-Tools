@@ -12,6 +12,7 @@ def setWorkspace(workspaceName):
         os.system(f'sway workspace {workspaceName}')
 
 def execCommand(command):
+    print(f"executing '{command}'")
     return subprocess.Popen(command, shell=True)
 
 # 
@@ -36,7 +37,7 @@ class ToggleBind(SingleBind):
         SingleBind.__init__(self, command, workspace, newWorkspace)
         self.process = None
     def open(self):
-        self.process = SingleBind.open()
+        self.process = SingleBind.open(self)
     def close(self):
         if self.process != None:
             print("closing bind")
@@ -47,22 +48,29 @@ class ToggleBind(SingleBind):
 
 class ReleaseBind(SingleBind):
     def __init__(self, command, releaseCommand, workspace=None, newWorkspace=None):
-        SingleBind.__init(self, command, workspace, newWorkspace)
+        SingleBind.__init__(self, command, workspace, newWorkspace)
         self.releaseCommand = releaseCommand
     def close(self):
         execCommand(self.releaseCommand)
+
+class EnvBind(ReleaseBind):
+    def __init__(self, env_var):
+        ReleaseBind.__init__(self, f"env {env_var}=true urxvt", f"env {env_var}=false urxvt")
 
 #
 # CONFIG
 #
 
 bindings = {
-    'A2': ToggleBind('spotify', 1, "music"),
+    # apps
+    'A2': ReleaseBind('spotify', 'killall spotify', 1, "music"),
     'G2': ToggleBind('firefox', 2, "internet"),
     'C2': ToggleBind('urxvt -bg black -fg white', 3, "code"),
-    'D2': ToggleBind('urxvt -bg black -fg white'),
-    'E2': ToggleBind('urxvt -bg black -fg white'),
-    'F2': ToggleBind('urxvt -bg black -fg white'),
+    # monitoring tools
+    'D2': ToggleBind('htop'),
+    'E2': EnvBind('bind_nethogs'),
+    'F2': EnvBind('bind_iftop'),
+    # switching displays
     'D3': SingleBind('', 'code'),
     'B3': SingleBind('', 'music'),
     'A3': SingleBind('', 'internet')
