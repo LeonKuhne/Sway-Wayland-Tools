@@ -11,6 +11,7 @@ transparency_val = '0.94'
 ipc              = i3ipc.Connection()
 prev_focused     = None
 
+# TODO make sure each window is unique
 for window in ipc.get_tree():
     if window.focused:
         prev_focused = window
