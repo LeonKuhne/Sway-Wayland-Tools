@@ -3,6 +3,8 @@ import argparse
 import os
 import subprocess
 
+DISPLAY = ['DVI-D-1', 'DVI-D-2', 'HDMI-A-1']
+
 #
 # Helper Functions
 #
@@ -10,6 +12,9 @@ import subprocess
 def setWorkspace(workspaceName):
     if(workspaceName != None):
         os.system(f'sway workspace {workspaceName}')
+
+def setDisplay(displayId):
+        os.system(f'sway focus output {DISPLAY[displayId]}')
 
 def execCommand(command):
     print(f"executing '{command}'")
@@ -22,12 +27,18 @@ def execCommand(command):
 class SingleBind:
     def __init__(self, command, workspace=None, newWorkspace=None):
         self.command = command
+        self.isDisplay = workspace in DISPLAY # determine if workspace is a display
         self.workspace = workspace
         self.newWorkspace = newWorkspace
     
     def open(self):
-        setWorkspace(self.workspace)
-        setWorkspace(self.newWorkspace)
+        if self.isDisplay:
+            displayID = DISPLAY.index(self.workspace)
+            setDisplay(displayID) # change to specific display
+        else:
+            setWorkspace(self.workspace) # change to specific workspace
+        
+        setWorkspace(self.newWorkspace) # optionally name new workspace
         return execCommand(self.command)
     def close(self):
         pass
@@ -63,9 +74,9 @@ class EnvBind(ReleaseBind):
 
 bindings = {
     # apps
-    'A2': ReleaseBind('spotify', 'killall spotify', 1, "music"),
-    'G2': ToggleBind('firefox', 2, "internet"),
-    'C2': ToggleBind('urxvt -bg black -fg white', 3, "code"),
+    'A2': ReleaseBind('spotify', 'killall spotify', DISPLAY[2], "music"),
+    'G2': ToggleBind('firefox', DISPLAY[0], "internet"),
+    'C2': ToggleBind('urxvt', DISPLAY[1], "code"),
     # monitoring tools
     'D2': ToggleBind('htop'),
     'E2': EnvBind('bind_nethogs'),
