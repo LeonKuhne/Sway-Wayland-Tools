@@ -75,8 +75,8 @@ class EnvBind(ReleaseBind):
 bindings = {
     # apps
     'A2': ReleaseBind('spotify', 'killall spotify', DISPLAY[2], "music"),
-    'G2': ToggleBind('firefox', DISPLAY[0], "internet"),
-    'C2': ToggleBind('urxvt', DISPLAY[1], "code"),
+    'G2': ToggleBind('firefox-developer-edition', DISPLAY[0], "internet"),
+    'C2': ToggleBind('urxvt -fg white -bg black', DISPLAY[1], "code"),
     # monitoring tools
     'D2': ToggleBind('htop'),
     'E2': EnvBind('bind_nethogs'),
