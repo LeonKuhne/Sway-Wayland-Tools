@@ -72,21 +72,32 @@ class EnvBind(ReleaseBind):
 # CONFIG
 #
 
-bindings = {
-    # apps
-    'A2': ReleaseBind('spotify', 'killall spotify', DISPLAY[2], "music"),
-    'G2': ToggleBind('firefox', DISPLAY[0], "internet"),
-    'C2': ToggleBind('urxvt -fg white -bg black', DISPLAY[1], "code"),
-    # monitoring tools
-    'D2': ToggleBind('htop'),
-    'E2': EnvBind('bind_nethogs'),
-    'F2': EnvBind('bind_iftop'),
-    # switching displays
-    'D3': SingleBind('', 'code'),
-    'B3': SingleBind('', 'music'),
-    'A3': SingleBind('', 'internet')
-}
-port = 2 # 0..n
+BINDING = [
+    {},
+    { # NANO
+        'A#-2': ToggleBind('playerctl play'),
+        'B-2': ToggleBind('playerctl pause'),
+        'D-1': ToggleBind('playerctl next'),
+        'C#-1': ToggleBind('playerctl previous')
+        'C#-1': ToggleBind('playerctl previous')
+    },
+    { # AKAI
+        # apps
+        'A2': ReleaseBind('spotify', 'killall spotify', DISPLAY[2], "music"),
+        'G2': ToggleBind('firefox', DISPLAY[0], "internet"),
+        'C2': ToggleBind('urxvt -fg white -bg black', DISPLAY[1], "code"),
+        # monitoring tools
+        'D2': ToggleBind('htop'),
+        'E2': EnvBind('bind_nethogs'),
+        'F2': EnvBind('bind_iftop'),
+        # switching displays
+        'D3': SingleBind('', 'code'),
+        'B3': SingleBind('', 'music'),
+        'A3': SingleBind('', 'internet')
+    },
+]
+
+port = 2 # default port 0..n
 readTimeout = 250 # ms
 
 #
@@ -97,7 +108,7 @@ readTimeout = 250 # ms
 midiin = rtmidi.RtMidiIn()
 
 # noteExp > the expected note
-def eventController(midi):
+def eventController(midi, bindings):
     midi.getNoteNumber()
     note = midi.getMidiNoteName(midi.getNoteNumber())
     velocity = midi.getVelocity()
@@ -121,7 +132,7 @@ def eventController(midi):
     else:
         print(f"{note} not set")
 
-def listenToPort(port):
+def listenToPort(port, callback):
     # connect to midi
     print(f"Opening port {port}!")
     midiin.openPort(port)
@@ -130,22 +141,35 @@ def listenToPort(port):
     while True:
         event = midiin.getMessage(250) # some timeout in ms
         if event:
-            eventController(event)
+            bindings = BINDING[port]
+            callback(event, bindings)
 
 
 # connect 
 if __name__ == '__main__':
     # parse args
     parser = argparse.ArgumentParser(description='program midi keyboard bindings')
-    parser.add_argument("-p", "--ports", help="show all connected ports", action="store_true")
+    parser.add_argument("-i", "--info", help="show all connected ports", action="store_true")
+    parser.add_argument("-l", "--listen", help="listen to input", action="store_true")
+    parser.add_argument("-p", "--port", help="specify midi port to use")
     args = parser.parse_args()
 
     ports = range(midiin.getPortCount())
+    
+    if args.port:
+        tempPort = int(args.port)
+        if tempPort < midiin.getPortCount() and tempPort > 0:
+            print(f"Using specified port {port}")
+            port = tempPort
+        else:
+            print(f"Couldn't find specified port {args.port}, using {port} instead")
 
     # handle args
-    if args.ports:
-        print(f"Here are the connected midi devices ({ports.len()}):")
+    if args.info:
+        print(f"Here are the connected midi devices ({len(ports)}):")
         for i in ports:
             print(midiin.getPortName(i))
+    elif args.listen:
+        listenToPort(port, print) 
     else:
-        listenToPort(port)
+        listenToPort(port, eventController) 
