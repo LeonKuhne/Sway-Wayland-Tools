@@ -66,7 +66,7 @@ class ReleaseBind(SingleBind):
 
 class EnvBind(ReleaseBind):
     def __init__(self, env_var):
-        ReleaseBind.__init__(self, f"env {env_var}=true urxvt", f"env {env_var}=false urxvt")
+        ReleaseBind.__init__(self, f"env {env_var}=true urxvt -fg white", f"env {env_var}=false urxvt -fg white")
 
 #
 # CONFIG
@@ -75,7 +75,7 @@ class EnvBind(ReleaseBind):
 bindings = {
     # apps
     'A2': ReleaseBind('spotify', 'killall spotify', DISPLAY[2], "music"),
-    'G2': ToggleBind('firefox-developer-edition', DISPLAY[0], "internet"),
+    'G2': ToggleBind('firefox', DISPLAY[0], "internet"),
     'C2': ToggleBind('urxvt -fg white -bg black', DISPLAY[1], "code"),
     # monitoring tools
     'D2': ToggleBind('htop'),
