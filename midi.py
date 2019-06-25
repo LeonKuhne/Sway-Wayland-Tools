@@ -30,7 +30,6 @@ class SingleBind:
         self.isDisplay = workspace in DISPLAY # determine if workspace is a display
         self.workspace = workspace
         self.newWorkspace = newWorkspace
-    
     def open(self):
         if self.isDisplay:
             displayID = DISPLAY.index(self.workspace)
@@ -68,9 +67,19 @@ class EnvBind(ReleaseBind):
     def __init__(self, env_var):
         ReleaseBind.__init__(self, f"env {env_var}=true urxvt -fg white", f"env {env_var}=false urxvt -fg white")
 
+class ControllerBind:
+    def __init__(self, command):
+        self.command = command
+    def control(self, value):
+        return execCommand(self.command % (value,))
+
 #
 # CONFIG
 #
+
+port = 2 # default port 0..n
+readTimeout = 250 # ms
+toolsDir = '~/.tools'
 
 BINDING = [
     {},
@@ -78,8 +87,8 @@ BINDING = [
         'A#-2': ToggleBind('playerctl play'),
         'B-2': ToggleBind('playerctl pause'),
         'D-1': ToggleBind('playerctl next'),
-        'C#-1': ToggleBind('playerctl previous')
-        'C#-1': ToggleBind('playerctl previous')
+        'C#-1': ToggleBind('playerctl previous'),
+        'C1': ControllerBind(f'{toolsDir}/set_volume.sh %s')
     },
     { # AKAI
         # apps
@@ -96,9 +105,6 @@ BINDING = [
         'A3': SingleBind('', 'internet')
     },
 ]
-
-port = 2 # default port 0..n
-readTimeout = 250 # ms
 
 #
 # CODE
@@ -127,7 +133,7 @@ def eventController(midi, bindings):
 
         elif midi.isController():
             #print('CONTROLLER', midi.getControllerNumber(), midi.getControllerValue())
-            print("controllers currently unsupported")
+            binding.control(midi.getControllerValue()/127)
             pass
     else:
         print(f"{note} not set")
