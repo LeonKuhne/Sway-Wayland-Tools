@@ -1,7 +1,13 @@
-#!/bin/sh
-query="himom"
-url="https://www.googleapis.com/customsearch/v1?q=${query}&num=1&start=1&key=AIzaSyBDGGKs-a8bINzP6jd_4u1qqBW7y4kNz38&cx=012781726598733212613%3Aao6yapeacdo&imgSize=large&filetype=jpg&tbm=isch"
-wget -O /data/Downloads/searchtoday.json $url
-imgurl=$(jq '.items[0].pagemap.cse_image[0].src' /data/Downloads/searchtoday.json)
-echo $imgurl
-#wget -O /data/Downloads/imagetoday.jpg $imgurl
+QUERY=$(date +"%A, %B %d")
+
+# consider using '-R day' flag to get images from today :D
+~/.tools/googliser.sh -p $QUERY -L -a wide -m 4mp -n 1 -o /data/Downloads #nothing should go to downloads, -o uses local dir
+URL=$(head -n 1 ./download.links.list)
+echo $URL
+wget -O /data/Downloads/image.today $URL
+rm ./download.links.list
+
+# set the backgrounds
+sway output DVI-D-1 bg /data/Downloads/image.today fill
+sway output DVI-D-2 bg /data/Downloads/image.today fill
+sway output HDMI-A-1 bg /data/Downloads/image.today fill

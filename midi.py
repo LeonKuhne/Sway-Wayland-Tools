@@ -88,7 +88,7 @@ BINDING = [
         'B-2': ToggleBind('playerctl pause'),
         'D-1': ToggleBind('playerctl next'),
         'C#-1': ToggleBind('playerctl previous'),
-        'C1': ControllerBind(f'{toolsDir}/set_volume.sh %s')
+        'C1': ControllerBind(f'pactl set-sink-volume @DEFAULT_SINK@ %s')
     },
     { # AKAI
         # apps
