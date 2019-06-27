@@ -4,15 +4,21 @@ import sys
 import os
 from freenect import sync_get_depth as get_depth # get_depth returns an array of 2 elements; [1] array of pixels, and [2] a timestamp
 from keras.models import Sequential
-from keras.layers import Conv2D, BatchNormalization, Dense, Input
+from keras.layers import Conv2D, BatchNormalization, Dense, MaxPooling2D, Flatten
+from keras.utils import to_categorical
+from sklearn.model_selection import train_test_split
+import cv2
+import matplotlib.pyplot as plt
 
 # supress warnings
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 # config
-NFRAMES = 100 # number of frames per observation (@30fps, ~3 sec)
+NFRAMES = 1000 # number of frames per observation (@30fps)
 NMONITORS = 3 # number of monitors being used
-NRESOLUTION = 2048 # number of depth 'pixels'
+NRESOLUTION = 2325 # max depth (unsure if this is the absolute max)
+# NRESOLUTION used to be 2048
+# TODO CONSIDER capping the NRESOLUTION in the future to be only in the depth range of your body
 
 def record_observation():
     print("\trecording...")
@@ -20,43 +26,52 @@ def record_observation():
 
     frames = []
     for i in range(NFRAMES):
-        frames.append(get_depth()[0].tolist())
+        frame = get_depth()[0][0] # get current frame from connect
+        frame = cv2.resize(frame, dsize=(28, 28), interpolation=cv2.INTER_CUBIC) # resize the image to be 32x32
+        frame = frame/NRESOLUTION # scale each depth between 0-1
+
+        # verify that its less than max
+        maxVal = np.max(frame)
+        if(maxVal>=1):
+            print(f"Found Max: {maxVal}")
+
+        frames.append(frame.tolist())
 
     print("\tdone")
-    return frames # returns regular array
+    return np.asarray(frames)
 
 def collect_data():
     # collect data of the user looking at the monitor
-    x_train_arr = []
     y_train_arr = []
 
     # monitor 1
-    #input("look at the top left monitor, press any key when ready")
-    x_train_arr.append(record_observation())
+    input("look at the top left monitor, press any key when ready")
+    x_train = record_observation()
     y_train_arr.append(np.full(NFRAMES, 1).tolist()) # create array with all ones
-    """
+    
     # monitor 2
     input("look at the bottom left monitor, press any key when ready")
-    x_train_arr.append(record_observation())
+    x_train = np.concatenate([x_train, record_observation()])
     y_train_arr.append(np.full(NFRAMES, 2).tolist()) # create array with all twos
 
     # monitor 3
     input("look at the right monitor, press any key when ready")
-    x_train_arr.append(record_observation())
+    x_train = np.concatenate([x_train, record_observation()])
     y_train_arr.append(np.full(NFRAMES, 3).tolist()) # create array with all threes
 
     # no monitors
     input("look away from the monitors, press any key when ready")
-    x_train_arr.append(record_observation())
+    x_train = np.concatenate([x_train, record_observation()])
     y_train_arr.append(np.full(NFRAMES, 0).tolist()) # create array with all zeros
-    """
-    # flatten and convert to numpy arrays
-    x_train = np.asarray(x_train_arr)
+    
+    # convert to numpy arrays, and flatten
     y_train = np.asarray(y_train_arr)
-    x_train = x_train.flatten()
     y_train = y_train.flatten()
 
-    return (x_train, y_train)
+    # turn the array into a matrix (one-hot encoding)
+    y_train = to_categorical(y_train)
+
+    return (np.asarray(x_train.tolist()), np.asarray(y_train))
     
 def make_gamma():
     """
@@ -95,16 +110,13 @@ gamma = make_gamma()
 # start the phases
 (x, y) = collect_data()
 
-# shuffle the data
-indices = np.arange(len(y))
-np.random.shuffle(indices)
-x = x[indices]
-y = y[indices]
+print('Raw Data:')
+print(x.shape)
+print(y.shape)
+x = x.reshape([-1, 28, 28, 1])# reshape x_train
 
-# randomly seperate 10% as validation data
-split_at = len(x) - len(x) // 10
-(x_train, x_val) = x[:split_at], x[split_at:]
-(y_train, y_val) = y[:split_at], y[split_at:]
+# create validation and training set
+x_train, x_val, y_train, y_val = train_test_split(x, y, random_state=7, test_size=0.2)
 
 # print some neat details
 print('Training Data:')
@@ -117,17 +129,21 @@ print(y_val.shape)
 
 # create the model
 model = Sequential()
-# TODO try adding 'Input' layer
-model.add(Conv2D(64, activation='relu', kernel_size=3, input_shape=(640, 480, 1))) # 64 'nodes'
-model.add(Dense(4)) # 3 monitors + no monitor
+# filters are also called kernels, so... filters is number of segments to take of picture, and kernal_size is the size of the filter
+model.add(Conv2D(filters=32, kernel_size=(3,3), activation='relu', input_shape=(28, 28, 1)))
+model.add(Conv2D(64, (3, 3), activation='relu'))
+model.add(MaxPooling2D(pool_size=(2,2)))
+model.add(Flatten())
+model.add(Dense(128, activation='relu'))
+model.add(Dense(4, activation='softmax')) # 3 monitors + no monitor
+
+# sanity check: x_train should be an array of pixels
 
 # compile
-model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
 
 # train
-BATCH_SIZE = 24
-EPOCHS = 5
-model.fit(x_train, y_train, batch_size=BATCH_SIZE, epochs=EPOCHS, validation_data=(x_val, y_val))
+model.fit(x_train, y_train, epochs=1000, validation_data=(x_val, y_val))
 model.save('trackv1.model')
 
 if __name__ == "__main__":
