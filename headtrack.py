@@ -6,6 +6,7 @@ from freenect import sync_get_depth as get_depth # get_depth returns an array of
 from keras.models import Sequential
 from keras.layers import Conv2D, BatchNormalization, Dense, MaxPooling2D, Flatten
 from keras.utils import to_categorical
+from keras.callbacks import EarlyStopping
 from sklearn.model_selection import train_test_split
 import cv2
 import matplotlib.pyplot as plt
@@ -14,9 +15,10 @@ import matplotlib.pyplot as plt
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 # config
-NFRAMES = 1000 # number of frames per observation (@30fps)
+NFRAMES = 100 # number of frames per observation (@30fps)
 NMONITORS = 3 # number of monitors being used
 NRESOLUTION = 2325 # max depth (unsure if this is the absolute max)
+DEPTH_CAP = 1000
 # NRESOLUTION used to be 2048
 # TODO CONSIDER capping the NRESOLUTION in the future to be only in the depth range of your body
 
@@ -48,21 +50,26 @@ def collect_data():
     input("look at the top left monitor, press any key when ready")
     x_train = record_observation()
     y_train_arr.append(np.full(NFRAMES, 1).tolist()) # create array with all ones
+    os.system('play /data/Music/tada.wav')
+    # play sound to signify done collecting
     
     # monitor 2
     input("look at the bottom left monitor, press any key when ready")
     x_train = np.concatenate([x_train, record_observation()])
     y_train_arr.append(np.full(NFRAMES, 2).tolist()) # create array with all twos
+    os.system('play /data/Music/tada.wav')
 
     # monitor 3
     input("look at the right monitor, press any key when ready")
     x_train = np.concatenate([x_train, record_observation()])
     y_train_arr.append(np.full(NFRAMES, 3).tolist()) # create array with all threes
+    os.system('play /data/Music/tada.wav')
 
     # no monitors
     input("look away from the monitors, press any key when ready")
     x_train = np.concatenate([x_train, record_observation()])
     y_train_arr.append(np.full(NFRAMES, 0).tolist()) # create array with all zeros
+    os.system('play /data/Music/tada.wav')
     
     # convert to numpy arrays, and flatten
     y_train = np.asarray(y_train_arr)
@@ -143,9 +150,14 @@ model.add(Dense(4, activation='softmax')) # 3 monitors + no monitor
 model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
 
 # train
-model.fit(x_train, y_train, epochs=1000, validation_data=(x_val, y_val))
-model.save('trackv1.model')
+#cbk_early_stopping = EarlyStopping(monitor='val_acc', mode='max')
+#model.fit(x_train, y_train, epochs=100, validation_data=(x_val, y_val), callbacks=[cbk_early_stopping])
+model.fit(x_train, y_train, epochs=100, validation_data=(x_val, y_val))
 
+# save
+model.save('trackv2.model')
+
+# show the cam
 if __name__ == "__main__":
     fpsClock = pygame.time.Clock()
     FPS = 30 # kinect only outputs 30 fps
