@@ -1,1 +1,4 @@
+#!/bin/sh
 git status -s
+
+echo "make midi change display brightness"
