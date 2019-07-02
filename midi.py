@@ -70,17 +70,16 @@ class EnvBind(ReleaseBind):
         ReleaseBind.__init__(self, f"env {env_var}=true urxvt -fg white", f"env {env_var}=false urxvt -fg white")
 
 class ControllerBind:
-    updateDelay = 0.5 # in seconds
-    def __init__(self, command, useDelay=False):
+    def __init__(self, command, delay=0):
         self.command = command
         self.lastRun = 0
         self.queueCmd = None
-        self.useDelay = useDelay
+        self.delay = delay/1000
     def control(self, value):
         cmd = self.command % (value,)
         now = time.time()
         timeDelta = now - self.lastRun
-        if(not self.useDelay or timeDelta > ControllerBind.updateDelay):
+        if timeDelta > self.delay:
             # execute command immediately
             self.lastRun = now
             execCommand(cmd)
@@ -90,7 +89,7 @@ class ControllerBind:
             if self.queueCmd == None:
                 # run last command at the next update time
                 self.queueCmd = cmd
-                delayWait = ControllerBind.updateDelay-timeDelta
+                delayWait = self.delay-timeDelta
                 runAfterDelay = Thread(target=self.runAfterDelay, args=(delayWait,))
                 runAfterDelay.start()
             else:
@@ -118,7 +117,7 @@ BINDING = [
         'D-1': ToggleBind('playerctl next'),
         'C#-1': ToggleBind('playerctl previous'),
         'C1': ControllerBind(f'{toolsDir}/set_volume.sh %s'),
-        'C#1': ControllerBind(f'redshift -l 43.79924:-72.1228 -g %s -r', True)
+        'C#1': ControllerBind(f'redshift -l 43.79924:-72.1228 -g %s -r -o', 2000)
     },
     { # AKAI
         # apps
