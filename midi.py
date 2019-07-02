@@ -2,6 +2,8 @@ import rtmidi
 import argparse
 import os
 import subprocess
+import time
+from threading import Thread
 
 DISPLAY = ['DVI-D-1', 'DVI-D-2', 'HDMI-A-1']
 
@@ -68,10 +70,37 @@ class EnvBind(ReleaseBind):
         ReleaseBind.__init__(self, f"env {env_var}=true urxvt -fg white", f"env {env_var}=false urxvt -fg white")
 
 class ControllerBind:
-    def __init__(self, command):
+    updateDelay = 0.5 # in seconds
+    def __init__(self, command, useDelay=False):
         self.command = command
+        self.lastRun = 0
+        self.queueCmd = None
+        self.useDelay = useDelay
     def control(self, value):
-        return execCommand(self.command % (value,))
+        cmd = self.command % (value,)
+        now = time.time()
+        timeDelta = now - self.lastRun
+        if(not self.useDelay or timeDelta > ControllerBind.updateDelay):
+            # execute command immediately
+            self.lastRun = now
+            execCommand(cmd)
+            self.queueCmd = None
+        else:
+            # execute command after delay
+            if self.queueCmd == None:
+                # run last command at the next update time
+                self.queueCmd = cmd
+                delayWait = ControllerBind.updateDelay-timeDelta
+                runAfterDelay = Thread(target=self.runAfterDelay, args=(delayWait,))
+                runAfterDelay.start()
+            else:
+                self.queueCmd = cmd
+    def runAfterDelay(self, delay):
+        # run after delay
+        self.lastRun = time.time()
+        time.sleep(delay)
+        execCommand(self.queueCmd)
+        self.queueCmd = None
 
 #
 # CONFIG
@@ -88,7 +117,8 @@ BINDING = [
         'B-2': ToggleBind('playerctl pause'),
         'D-1': ToggleBind('playerctl next'),
         'C#-1': ToggleBind('playerctl previous'),
-        'C1': ControllerBind(f'{toolsDir}/set_volume.sh %s')
+        'C1': ControllerBind(f'{toolsDir}/set_volume.sh %s'),
+        'C#1': ControllerBind(f'redshift -l 43.79924:-72.1228 -g %s -r', True)
     },
     { # AKAI
         # apps
