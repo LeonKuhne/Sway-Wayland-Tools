@@ -1,1 +1,3 @@
 *.model
+nohup.out
+__pycache__/*
