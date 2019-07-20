@@ -2,6 +2,7 @@
 	"default_port": 0,
 	"timeout": 250,
 	"tools_dir": "~/.tools",
+	"displays": ["DP-1", "DVI-D-1", "DVI-D-2", "HDMI-A-1"],
 	"bindings": [
 		{
 			"A#-2": "ToggleBind('playerctl play')",
