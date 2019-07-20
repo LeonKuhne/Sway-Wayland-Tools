@@ -2,8 +2,9 @@ import rtmidi
 import argparse
 import os
 import subprocess
+import json
 
-DISPLAY = ['DVI-D-1', 'DVI-D-2', 'HDMI-A-1', 'DP-1']
+DISPLAY = ['DP-1', 'DVI-D-1', 'HDMI-A-1', 'DVI-D-2']
 
 #
 # Helper Functions
@@ -84,38 +85,10 @@ class ControllerBind:
 # CONFIG
 #
 
-port = 2 # default port 0..n
-readTimeout = 250 # ms
-toolsDir = '~/.tools'
+with open('midi.json', 'r') as midi_file:
+    config = json.loads(midi_file.read())
 
-BINDING = [
-    {},
-    { # NANO
-        'A#-2': ToggleBind('playerctl play'),
-        'B-2': ToggleBind('playerctl pause'),
-        'D-1': ToggleBind('playerctl next'),
-        'C#-1': ToggleBind('playerctl previous'),
-        'C1': ControllerBind(f'pactl set-sink-volume @DEFAULT_SINK@ %s')
-    },
-    { # AKAI
-        # apps
-        'A2': ReleaseBind('spotify', 'killall spotify', DISPLAY[3], "music"),
-        'G2': ToggleBind('firefox', DISPLAY[0], "internet"),
-        'B2': KillOnReleaseBind('discord', DISPLAY[3], "discord"),
-        'C2': ToggleBind('urxvt -fg white -bg black', DISPLAY[1], "code"),
-        # monitoring tools
-        'D2': ToggleBind('htop'),
-        'E2': EnvBind('bind_nethogs'),
-        'F2': EnvBind('bind_iftop'),
-        # switching displays
-        'D3': SingleBind('', 'code'),
-        'B3': SingleBind('', 'music'),
-        'A3': SingleBind('', 'internet'),
-        'C4': SingleBind('', 'discord'),
-        # change background
-        'D4': SingleBind('~/.tools/image_today.sh')
-    },
-]
+toolsDir = '~/.tools'
 
 #
 # CODE
@@ -132,7 +105,9 @@ def eventController(midi, bindings):
     
     # controller logic
     if note in bindings:
-        binding = bindings[note]
+        print(bindings[note])
+        binding = eval(bindings[note])
+        print(binding)
 
         if midi.isNoteOn():
             print("opening binding")
@@ -152,13 +127,19 @@ def eventController(midi, bindings):
 def listenToPort(port, callback):
     # connect to midi
     print(f"Opening port {port}!")
-    midi_in.openPort(port)
+    midi_in.openPort(port+1)
 
     # read midi messages
     while True:
-        event = midi_in.getMessage(250) # some timeout in ms
+        event = midi_in.getMessage(config['timeout']) # some timeout in ms
         if event:
-            bindings = BINDING[port]
+            bindings = config['bindings'][port]
+            print(bindings)
+
+            # TODO convert string bindings to objects
+            bindings = bindings
+
+
             callback(event, bindings)
 
 
@@ -171,14 +152,15 @@ if __name__ == '__main__':
     parser.add_argument("-p", "--port", help="specify midi port to use")
     args = parser.parse_args()
 
-    
+    # get port
+    port = config['default_port']
     if args.port:
-        tempPort = int(args.port)
-        if tempPort < midi_in.getPortCount() and tempPort > 0:
+        temp_port = int(args.port)
+        if temp_port < midi_in.getPortCount():
+            port = temp_port
             print(f"Using specified port {port}")
-            port = tempPort
         else:
-            print(f"Couldn't find specified port {args.port}, using {port} instead")
+            print(f"Couldn't find specified port {args.port}, using (default) {port} instead")
 
     # handle args
     if args.info:

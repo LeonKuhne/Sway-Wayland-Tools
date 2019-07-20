@@ -1,0 +1,29 @@
+{
+	"default_port": 0,
+	"timeout": 250,
+	"tools_dir": "~/.tools",
+	"bindings": [
+		{
+			"A#-2": "ToggleBind('playerctl play')",
+			"B-2": "ToggleBind('playerctl pause')",
+			"D-1": "ToggleBind('playerctl next')",
+			"C#-1": "ToggleBind('playerctl previous')",
+			"C1": "ControllerBind(f'pactl set-sink-volume @DEFAULT_SINK@ %s')"
+		},
+		{
+		        "A2": "ReleaseBind('spotify', 'killall spotify', DISPLAY[3], 'music')",
+	        	"G2": "ToggleBind('firefox-nightly', DISPLAY[0], 'internet')",
+		        "B2": "KillOnReleaseBind('discord', DISPLAY[3], 'discord')",
+		        "C2": "ToggleBind('urxvt -fg white -bg black', DISPLAY[1], 'code')",
+		        "D2": "ToggleBind('htop')",
+			"E2": "EnvBind('bind_nethogs')",
+			"F2": "EnvBind('bind_iftop')",
+			"D3": "SingleBind('', 'code')",
+			"B3": "SingleBind('', 'music')",
+			"A3": "SingleBind('', 'internet')",
+			"C4": "SingleBind('', 'discord')",
+			"D4": "SingleBind('~/.tools/image_today.sh')"
+		}
+	]
+}
+
