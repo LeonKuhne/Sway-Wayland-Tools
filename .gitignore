@@ -1,3 +1,5 @@
 *.model
 nohup.out
+midi/nohup.out
 __pycache__/*
+midi/__pycache__/*
