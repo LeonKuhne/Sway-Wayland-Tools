@@ -1,4 +1,4 @@
-workspace=$(swaymsg -r -t get_workspaces | grep "name" | sed 's/\s*"name": "//g' | sed 's/",//g' | dmenu)
+workspace=$(swaymsg -r -t get_workspaces | grep "name" | sed 's/\s*"name": "//g' | sed 's/",//g' | bemenu)
 
 case $1 in
 	'select')
@@ -6,12 +6,12 @@ case $1 in
 	;;
 	'rename')
 		sway workspace $workspace
-		newName=$(echo '' | dmenu)
+		newName=$(echo '' | bemenu)
 		sway rename workspace $workspace to $newName
 	;;
 	'move')
 		sway workspace $workspace
-		output=$(swaymsg -r -t get_outputs | grep "name" | sed 's/\s*"name": "//g' | sed 's/",//g' | dmenu)
+		output=$(swaymsg -r -t get_outputs | grep "name" | sed 's/\s*"name": "//g' | sed 's/",//g' | bemenu)
 		sway move workspace to output $output
 	;;
 esac

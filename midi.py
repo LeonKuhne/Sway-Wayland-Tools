@@ -3,7 +3,7 @@ import argparse
 import os
 import subprocess
 
-DISPLAY = ['DVI-D-1', 'DVI-D-2', 'HDMI-A-1']
+DISPLAY = ['DVI-D-1', 'DVI-D-2', 'HDMI-A-1', 'DP-1']
 
 #
 # Helper Functions
@@ -63,6 +63,13 @@ class ReleaseBind(SingleBind):
     def close(self):
         execCommand(self.releaseCommand)
 
+class KillOnReleaseBind(SingleBind):
+    def close(self):
+        displayID = DISPLAY.index(self.workspace)
+        setDisplay(displayID) # change to specific display
+        execCommand("sway kill")
+
+
 class EnvBind(ReleaseBind):
     def __init__(self, env_var):
         ReleaseBind.__init__(self, f"env {env_var}=true urxvt -fg white", f"env {env_var}=false urxvt -fg white")
@@ -92,8 +99,9 @@ BINDING = [
     },
     { # AKAI
         # apps
-        'A2': ReleaseBind('spotify', 'killall spotify', DISPLAY[2], "music"),
+        'A2': ReleaseBind('spotify', 'killall spotify', DISPLAY[3], "music"),
         'G2': ToggleBind('firefox', DISPLAY[0], "internet"),
+        'B2': KillOnReleaseBind('discord', DISPLAY[3], "discord"),
         'C2': ToggleBind('urxvt -fg white -bg black', DISPLAY[1], "code"),
         # monitoring tools
         'D2': ToggleBind('htop'),
@@ -102,7 +110,10 @@ BINDING = [
         # switching displays
         'D3': SingleBind('', 'code'),
         'B3': SingleBind('', 'music'),
-        'A3': SingleBind('', 'internet')
+        'A3': SingleBind('', 'internet'),
+        'C4': SingleBind('', 'discord'),
+        # change background
+        'D4': SingleBind('~/.tools/image_today.sh')
     },
 ]
 
@@ -111,7 +122,7 @@ BINDING = [
 #
 
 # vars
-midiin = rtmidi.RtMidiIn()
+midi_in = rtmidi.RtMidiIn()
 
 # noteExp > the expected note
 def eventController(midi, bindings):
@@ -141,11 +152,11 @@ def eventController(midi, bindings):
 def listenToPort(port, callback):
     # connect to midi
     print(f"Opening port {port}!")
-    midiin.openPort(port)
+    midi_in.openPort(port)
 
     # read midi messages
     while True:
-        event = midiin.getMessage(250) # some timeout in ms
+        event = midi_in.getMessage(250) # some timeout in ms
         if event:
             bindings = BINDING[port]
             callback(event, bindings)
@@ -160,11 +171,10 @@ if __name__ == '__main__':
     parser.add_argument("-p", "--port", help="specify midi port to use")
     args = parser.parse_args()
 
-    ports = range(midiin.getPortCount())
     
     if args.port:
         tempPort = int(args.port)
-        if tempPort < midiin.getPortCount() and tempPort > 0:
+        if tempPort < midi_in.getPortCount() and tempPort > 0:
             print(f"Using specified port {port}")
             port = tempPort
         else:
@@ -173,8 +183,8 @@ if __name__ == '__main__':
     # handle args
     if args.info:
         print(f"Here are the connected midi devices ({len(ports)}):")
-        for i in ports:
-            print(midiin.getPortName(i))
+        for port_num in range(midi_in.getPortCount()): 
+            print(port_num)
     elif args.listen:
         listenToPort(port, print) 
     else:
