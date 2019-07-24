@@ -1,21 +1,20 @@
 {
 	"default_port": 0,
 	"timeout": 250,
-	"tools_dir": "~/.tools",
 	"displays": ["DP-1", "DVI-D-1", "DVI-D-2", "HDMI-A-1"],
 	"bindings": [
 		{
-			"A#-2": "ToggleBind('playerctl play')",
-			"B-2": "ToggleBind('playerctl pause')",
-			"D-1": "ToggleBind('playerctl next')",
-			"C#-1": "ToggleBind('playerctl previous')",
+			"A#-2": "SingleBind('playerctl play')",
+			"B-2": "SingleBind('playerctl pause')",
+			"D-1": "SingleBind('playerctl next')",
+			"C#-1": "SingleBind('playerctl previous')",
 			"C1": "ControllerBind(f'pactl set-sink-volume @DEFAULT_SINK@ %s')"
 		},
 		{
-		        "A2": "ReleaseBind('spotify', 'killall spotify', DISPLAY[3], 'music')",
-	        	"G2": "ToggleBind('firefox-nightly', DISPLAY[0], 'internet')",
-		        "B2": "KillOnReleaseBind('discord', DISPLAY[3], 'discord')",
-		        "C2": "ToggleBind('urxvt -fg white -bg black', DISPLAY[1], 'code')",
+		        "C2": "KillOnReleaseBind('spotify', 2, 'music')",
+	        	"A2": "KillOnReleaseBind('firefox-nightly', 0, 'internet')",
+		        "B2": "KillOnReleaseBind('discord', 2, 'discord')",
+		        "G2": "ToggleBind('termite', 1, 'code')",
 		        "D2": "ToggleBind('htop')",
 			"E2": "EnvBind('bind_nethogs')",
 			"F2": "EnvBind('bind_iftop')",

@@ -1,11 +1,13 @@
 import rtmidi
 import argparse
-import midi_bind as bind
-import midi_util as util
+import bind
+import util
+
 
 # vars
 config = util.getConfig()
 midi_in = rtmidi.RtMidiIn()
+
 
 def eventController(midi, bindings):
     midi.getNoteNumber()
@@ -14,9 +16,7 @@ def eventController(midi, bindings):
     
     # controller logic
     if note in bindings:
-        print(bindings[note])
         binding = eval(f'bind.{bindings[note]}')
-        print(binding)
 
         if midi.isNoteOn():
             print("opening binding")

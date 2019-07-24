@@ -1,24 +1,19 @@
 import json
-import midi_util as util
+import util
 
 config = util.getConfig()
 
-# 
-# Binding Classes
-#
 
 class SingleBind:
-    def __init__(self, command, workspace=None, newWorkspace=None):
+    def __init__(self, command, displayId=None, newWorkspace=None):
         self.command = command
-        self.isDisplay = workspace in config['displays'] # determine if workspace is a display
-        self.workspace = workspace
+        print('display id:', displayId)
+
+        self.displayId = displayId
         self.newWorkspace = newWorkspace
     def open(self):
-        if self.isDisplay:
-            displayID = config['displays'].index(self.workspace)
-            util.setDisplay(displayID) # change to specific display
-        else:
-            util.setWorkspace(self.workspace) # change to specific workspace
+        if self.displayId:
+            util.setDisplay(self.displayId) # change to specific display
         
         util.setWorkspace(self.newWorkspace) # optionally name new workspace
         return util.execCommand(self.command)
@@ -34,6 +29,8 @@ class ToggleBind(SingleBind):
     def close(self):
         if self.process != None:
             print("closing bind")
+            # kill the process
+            #util.killProcess(self.process)
             self.process.terminate()
             self.process = None
         else:
@@ -48,10 +45,8 @@ class ReleaseBind(SingleBind):
 
 class KillOnReleaseBind(SingleBind):
     def close(self):
-        displayID = config['displays'].index(self.workspace)
-        util.setDisplay(displayID) # change to specific display
+        util.setDisplay(self.displayId) # change to specific display
         util.execCommand("sway kill")
-
 
 class EnvBind(ReleaseBind):
     def __init__(self, env_var):
