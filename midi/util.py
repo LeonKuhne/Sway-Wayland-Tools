@@ -4,7 +4,7 @@ import json
 
 
 def getConfig():
-    with open('config.json', 'r') as config_file:
+    with open('/home/x/.tools/midi/config.json', 'r') as config_file:
         return json.loads(config_file.read())
 
 config = getConfig()
