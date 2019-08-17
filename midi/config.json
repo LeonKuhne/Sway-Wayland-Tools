@@ -8,7 +8,9 @@
 			"B-2": "SingleBind('playerctl pause')",
 			"D-1": "SingleBind('playerctl next')",
 			"C#-1": "SingleBind('playerctl previous')",
-			"C1": "ControllerBind(f'pactl set-sink-volume @DEFAULT_SINK@ %s')"
+			"C1": "ControllerBind(f'pactl set-sink-volume @DEFAULT_SINK@ %s')",
+			"C-1": "SingleBind('itfilename=$(date +%m-%d-%Y)-$(ls -1q /data/Images/today/* | wc -l).png && cp /data/Downloads/image.today /data/Images/today/$itfilename')",
+			"D#-1": "SingleBind('~/.tools/image_today.sh')"
 		},
 		{
 		        "C2": "KillOnReleaseBind('spotify', 2, 'music')",
@@ -21,8 +23,7 @@
 			"D3": "SingleBind('', 'code')",
 			"B3": "SingleBind('', 'music')",
 			"A3": "SingleBind('', 'internet')",
-			"C4": "SingleBind('', 'discord')",
-			"D4": "SingleBind('~/.tools/image_today.sh')"
+			"C4": "SingleBind('', 'discord')"
 		}
 	]
 }
