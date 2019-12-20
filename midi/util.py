@@ -4,10 +4,9 @@ import json
 
 
 def getConfig():
-    with open('/home/x/.tools/midi/config.json', 'r') as config_file:
+    with open('/home/x/.config/midi/config.json', 'r') as config_file:
         return json.loads(config_file.read())
 
-config = getConfig()
 
 def setWorkspace(workspaceName):
     if(workspaceName != None):
@@ -15,6 +14,7 @@ def setWorkspace(workspaceName):
 
 def setDisplay(displayId):
     print("display:", displayId)
+    config = getConfig()
     display = config['displays'][displayId]
     print(display)
     os.system(f"sway focus output {display}")
@@ -25,3 +25,4 @@ def execCommand(command):
 
 def killProcess(process):
     os.killpg(os.getpgid(pro.pid), signal.SIGTERM)
+

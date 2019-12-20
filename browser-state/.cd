@@ -1,0 +1,2 @@
+echo "this firefox extension provides the currently used browser url in a text file"
+echo "verify that the firefox application is being selected"

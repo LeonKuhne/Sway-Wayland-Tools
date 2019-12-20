@@ -11,14 +11,29 @@ class SingleBind:
 
         self.displayId = displayId
         self.newWorkspace = newWorkspace
-    def open(self):
-        if self.displayId:
+    def run(self, command=None):
+        if not command:
+            command = self.command        
+        if self.displayId != None:
             util.setDisplay(self.displayId) # change to specific display
-        
+        else:
+            print(f"ERROR: specified ({self.displayId}) display not found")
         util.setWorkspace(self.newWorkspace) # optionally name new workspace
-        return util.execCommand(self.command)
+        return util.execCommand(command)
+    def open(self):
+        return self.run()
     def close(self):
         pass
+
+class DoubleBind(SingleBind):
+    def __init__(self, command, releaseCommand, workspace=None, newWorkspace=None):
+        SingleBind.__init__(self, command, workspace, newWorkspace)
+        self.releaseCommand = releaseCommand
+    def open(self):
+        self.run()
+    def close(self):
+        print('running release command')
+        self.run(self.releaseCommand)
 
 class ToggleBind(SingleBind):
     def __init__(self, command, workspace=None, newWorkspace=None):
