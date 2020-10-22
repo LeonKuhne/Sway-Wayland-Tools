@@ -86,7 +86,7 @@ if __name__ == '__main__':
     if args.info:
         ports = midi_in.get_ports()
         print(f"Here are the connected midi devices ({len(ports)}):")
-        for port_num in range(1, len(ports)):
+        for port_num in range(0, len(ports)):
             print(f"{port_num}: {ports[port_num]}")
 
     elif args.blink:
