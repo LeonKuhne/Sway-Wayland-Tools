@@ -1,28 +1,37 @@
 #!/bin/bash
+#source /home/id/.bash_profile
 
 # need this for the cronjob
 TOOLS=/home/id/Projects/tools
-IMG_DIR=/home/id
-#source /home/id/.bash_profile
-QUERY=$(date +"%A, %B %d")
+IMG_SAVE_DIR=/home/id/Downloads
+IMG_URL_DIR=/home/id
+
+# find the image
+#QUERY=$(date +"%A, %B %d")
 NOUN=$(curl https://www.random-ize.com/noun/nou-f.php)
-# consider using '-R day' flag to get images from today :D
-/usr/local/bin/googliser -p "$QUERY $NOUN" -L -a wide -m 4mp -n 1 -o $IMG_DIR # it goes into $HOME
-URL=$(head -n 1 $IMG_DIR/image.links.list)
-wget -O /home/id/Downloads/image.today $URL
+NOUN2=$(curl https://www.random-ize.com/noun/nou-f.php)
+/usr/local/bin/googliser -L -a wide -n 1 -R "day" -p "$NOUN $NOUN2" -o $IMG_SAVE_DIR
+#/usr/local/bin/googliser -L -a wide -n 1 -o $IMG_DIR -R "day" -p "$NOUN" --random
+#/usr/local/bin/googliser -L -a wide -m 4mp -n 1 -o $IMG_DIR -p "$QUERY $NOUN"
+URL=$(head -n 1 ./image.links.list)
 
+# save the image
 echo "found url: $URL"
+wget -O $IMG_SAVE_DIR/image.today $URL
 
-rm $IMG_DIR/image.links.list
+# add the nouns
+magick $IMG_SAVE_DIR/image.today -font Ubuntu-Medium-Italic -fill black -pointsize "%[fx:w/25]" -gravity Center -draw "text 0,%[fx:(9*w)/(16*h)*(h/3)] '$NOUN $NOUN2'" $IMG_SAVE_DIR/image.today
+
+rm $IMG_URL_DIR/image.links.list
 
 # get the current active socket, for cronjob
 export SWAYSOCK=/run/user/$(id -u)/sway-ipc.$(id -u).$(pgrep -x sway).sock
 
 # show the background image
-sway output DP-1 bg /home/id/Downloads/image.today fill
-sway output DVI-D-1 bg /home/id/Downloads/image.today fill
-sway output DVI-D-2 bg /home/id/Downloads/image.today fill
-#sway output HDMI-A-1 bg /home/id/Downloads/image.today fill
+sway output DP-1 bg $IMG_SAVE_DIR/image.today fill
+sway output DVI-D-1 bg $IMG_SAVE_DIR/image.today fill
+sway output DVI-D-2 bg $IMG_SAVE_DIR/image.today fill
+#sway output HDMI-A-1 bg $IMG_SAVE_DIR/image.today fill
 
 # Split the background up into 4 pieces
 #
@@ -42,4 +51,3 @@ sway output DVI-D-2 bg /home/id/Downloads/image.today fill
 #sway output DVI-D-2 bg /home/id/Downloads/image_today_2.png fill
 #sway output DVI-D-1 bg /home/id/Downloads/image_today_3.png fill
 #sway output DP-1 bg /home/id/Downloads/image_today_4.png fill
-
