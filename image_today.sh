@@ -1,10 +1,10 @@
 #!/bin/bash
-#source /home/id/.bash_profile
+#source /home/x/.bash_profile
 
 # need this for the cronjob
-TOOLS=/home/id/Projects/tools
-IMG_SAVE_DIR=/home/id/Downloads
-IMG_URL_DIR=/home/id
+TOOLS=/home/x/Projects/tools
+IMG_SAVE_DIR=/home/x/Pictures/today
+IMG_URL_DIR=/home/x
 
 # find the image
 #QUERY=$(date +"%A, %B %d")
@@ -20,7 +20,7 @@ echo "found url: $URL"
 wget -O $IMG_SAVE_DIR/image.today $URL
 
 # add the nouns
-magick $IMG_SAVE_DIR/image.today -font Ubuntu-Medium-Italic -fill black -pointsize "%[fx:w/25]" -gravity Center -draw "text 0,%[fx:(9*w)/(16*h)*(h/3)] '$NOUN $NOUN2'" $IMG_SAVE_DIR/image.today
+magick $IMG_SAVE_DIR/image.today -font DejaVuSans-Bold -fill black -pointsize "%[fx:w/25]" -gravity Center -draw "text 0,%[fx:(9*w)/(16*h)*(h/3)] '$NOUN $NOUN2'" $IMG_SAVE_DIR/image.today
 
 rm $IMG_URL_DIR/image.links.list
 
@@ -29,8 +29,8 @@ export SWAYSOCK=/run/user/$(id -u)/sway-ipc.$(id -u).$(pgrep -x sway).sock
 
 # show the background image
 sway output DP-1 bg $IMG_SAVE_DIR/image.today fill
-sway output DVI-D-1 bg $IMG_SAVE_DIR/image.today fill
-sway output DVI-D-2 bg $IMG_SAVE_DIR/image.today fill
+#sway output DVI-D-1 bg $IMG_SAVE_DIR/image.today fill
+#sway output DVI-D-2 bg $IMG_SAVE_DIR/image.today fill
 #sway output HDMI-A-1 bg $IMG_SAVE_DIR/image.today fill
 
 # Split the background up into 4 pieces
@@ -39,15 +39,15 @@ sway output DVI-D-2 bg $IMG_SAVE_DIR/image.today fill
 # I stole these values from ~/.config/sway/config
 
 # total screen image. The '^' stands for 'minimum values of width and height given, aspect ratio preserved'
-#convert -gravity center -resize 4740x2340^ /home/id/Downloads/image.today /home/id/Downloads/image_today.png
+#convert -gravity center -resize 4740x2340^ /home/x/Downloads/image.today /home/x/Downloads/image_today.png
 # individual cropings
-#convert -crop 1440x900+1600+0 /home/id/Downloads/image_today.png /home/id/Downloads/image_today_1.png
-#convert -crop 1920x1080+0+960 /home/id/Downloads/image_today.png /home/id/Downloads/image_today_2.png
-#convert -crop 900x1440+1920+900 /home/id/Downloads/image_today.png /home/id/Downloads/image_today_3.png
-#convert -crop 1920x1080+2820+900 /home/id/Downloads/image_today.png /home/id/Downloads/image_today_4.png
+#convert -crop 1440x900+1600+0 /home/x/Downloads/image_today.png /home/x/Downloads/image_today_1.png
+#convert -crop 1920x1080+0+960 /home/x/Downloads/image_today.png /home/x/Downloads/image_today_2.png
+#convert -crop 900x1440+1920+900 /home/x/Downloads/image_today.png /home/x/Downloads/image_today_3.png
+#convert -crop 1920x1080+2820+900 /home/x/Downloads/image_today.png /home/x/Downloads/image_today_4.png
 
 # show the split background images
-#sway output HDMI-A-1 bg /home/id/Downloads/image_today_1.png fill
-#sway output DVI-D-2 bg /home/id/Downloads/image_today_2.png fill
-#sway output DVI-D-1 bg /home/id/Downloads/image_today_3.png fill
-#sway output DP-1 bg /home/id/Downloads/image_today_4.png fill
+#sway output HDMI-A-1 bg /home/x/Downloads/image_today_1.png fill
+#sway output DVI-D-2 bg /home/x/Downloads/image_today_2.png fill
+#sway output DVI-D-1 bg /home/x/Downloads/image_today_3.png fill
+#sway output DP-1 bg /home/x/Downloads/image_today_4.png fill
